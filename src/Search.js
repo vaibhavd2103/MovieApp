@@ -40,11 +40,10 @@ const Search = () => {
 
   return (
     <Container>
-      <View>
-        <Text style={{ ...Font.title, marginBottom: 20, marginTop: 10 }}>
-          Search Movie
-        </Text>
-      </View>
+      <Text style={{ ...Font.title, marginBottom: 20, marginTop: 40 }}>
+        Search Movie
+      </Text>
+
       <View
         style={{
           flexDirection: "row",
@@ -86,10 +85,9 @@ const Search = () => {
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  height: (Sizes.width - 250) * 0.56,
                   width: "100%",
                   marginBottom: 10,
-                  backgroundColor: "#15151577",
+                  backgroundColor: "#151515",
                 }}
               >
                 <Image

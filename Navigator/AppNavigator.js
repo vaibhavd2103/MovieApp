@@ -6,6 +6,8 @@ import Login from "../src/Authentication/Login";
 import SignUp from "../src/Authentication/SignUp";
 import Home from "../src/Home";
 import Search from "../src/Search";
+import MovieDetails from "../src/MovieDetails";
+import Profile from "../src/Profile";
 
 const AppNavigator = () => {
   const Stack = createStackNavigator();
@@ -20,6 +22,8 @@ const AppNavigator = () => {
         <Stack.Screen component={SignUp} name="SignUp" />
         <Stack.Screen component={Home} name="Home" />
         <Stack.Screen component={Search} name="Search" />
+        <Stack.Screen component={MovieDetails} name="MovieDetails" />
+        <Stack.Screen component={Profile} name="Profile" />
       </Stack.Navigator>
     </NavigationContainer>
   );

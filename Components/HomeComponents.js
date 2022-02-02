@@ -15,8 +15,6 @@ import { API_KEY } from "../requests";
 import { LinearGradient } from "expo-linear-gradient";
 import axios from "axios";
 
-// kay?
-
 const imageUrl = "https://image.tmdb.org/t/p/original/";
 
 const MovieTile = ({
@@ -25,6 +23,7 @@ const MovieTile = ({
   selectedMovie,
   setSelectedMovie,
   showModal,
+  navigation,
 }) => {
   //   console.log(item);
   return (
@@ -32,7 +31,8 @@ const MovieTile = ({
       style={styles.tile}
       onPress={() => {
         setSelectedMovie(item.id);
-        showModal();
+        navigation.navigate("MovieDetails", item.id);
+        //    showModal();
       }}
     >
       <Image
@@ -53,12 +53,13 @@ const MovieDetailPopUp = ({ id }) => {
   const [IMDBid, setIMDBid] = useState("");
   const [cast, setCast] = useState([]);
   const [trailerURL, setTrailerURL] = useState("");
+  const [similarMovies, setSimilarMovies] = useState([]);
   // const id = id
   useEffect(() => {
     const fetchData = async () => {
       const movieData = await instance.get(`/movie/${id}?api_key=${API_KEY}`);
       //  console.log(movieData.data);
-
+      //  setLoading(false);
       const castData = await axios.get(
         `https://imdb-api.com/API/FullCast/k_cv8041zd/${movieData.data.imdb_id}`
       );
@@ -66,10 +67,15 @@ const MovieDetailPopUp = ({ id }) => {
       const trailerData = await axios.get(
         `https://imdb-api.com/en/API/Trailer/k_cv8041zd/${movieData.data.imdb_id}`
       );
+      const similar = await instance.get(
+        `/movie/${id}/similar?api_key=${API_KEY}`
+      );
+      //  console.log(similar.data.results);
       setLoading(false);
       setData(movieData.data);
       setCast(castData.data.actors);
       setTrailerURL(trailerData.data.linkEmbed);
+      setSimilarMovies(similar.data.results);
     };
     fetchData();
   }, []);
@@ -238,6 +244,49 @@ const MovieDetailPopUp = ({ id }) => {
                 Unknown
               </Text>
             )}
+            <Text
+              style={{
+                ...Font.title,
+                marginTop: 15,
+                textAlign: "left",
+                fontSize: 15,
+                paddingLeft: 10,
+              }}
+            >
+              Similar Movies
+            </Text>
+            <ScrollView style={{ paddingHorizontal: 10 }} horizontal={true}>
+              {similarMovies ? (
+                similarMovies.map((item, i) => {
+                  return (
+                    <View style={{ margin: 5 }} key={i}>
+                      <Image
+                        source={{
+                          uri: `${imageUrl}${item.poster_path}`,
+                        }}
+                        style={{
+                          height: (Sizes.width / 2.5 - 40) * 1.5,
+                          width: Sizes.width / 2.5 - 40,
+                          borderRadius: 5,
+                        }}
+                        resizeMode="cover"
+                      />
+                    </View>
+                  );
+                })
+              ) : (
+                <Text
+                  style={{
+                    ...Font.light,
+                    fontSize: 15,
+                    opacity: 0.7,
+                    paddingLeft: 10,
+                  }}
+                >
+                  Unknown
+                </Text>
+              )}
+            </ScrollView>
             <Text
               style={{
                 ...Font.title,

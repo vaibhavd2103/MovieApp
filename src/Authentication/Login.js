@@ -14,13 +14,20 @@ const Login = (props) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   return (
-    <Container bg={true} style={{ paddingHorizontal: 20 }}>
+    <Container
+      style={{
+        paddingHorizontal: 20,
+        justifyContent: "center",
+        height: "100%",
+      }}
+    >
       <View style={styles.header}>
         <Text style={{ ...Font.title, fontSize: 24 }}>Log in</Text>
       </View>
       <View
         style={{
           marginTop: 40,
+          width: "100%",
         }}
       >
         <Text style={{ ...Font.normal }}>
@@ -50,7 +57,7 @@ const Login = (props) => {
               style={{
                 flex: 1,
                 height: "100%",
-                fontFamily: "QuickBold",
+                fontFamily: "QuickSemiBold",
                 fontSize: 15,
                 color: Colors.white,
                 paddingLeft: 10,
@@ -75,7 +82,7 @@ const Login = (props) => {
               style={{
                 flex: 1,
                 height: "100%",
-                fontFamily: "QuickBold",
+                fontFamily: "QuickSemiBold",
                 fontSize: 15,
                 color: Colors.white,
                 paddingLeft: 10,
@@ -86,15 +93,30 @@ const Login = (props) => {
         </View>
       </View>
       <TouchableOpacity
-        style={{ marginTop: 50 }}
+        style={styles.login}
         onPress={() => {
           props.navigation.navigate("Home");
         }}
       >
-        <LinearBorder>
-          <Text style={Font.title}>Login</Text>
-        </LinearBorder>
+        <Text style={{ ...Font.title, bottom: 3 }}>Login</Text>
       </TouchableOpacity>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginTop: 5,
+          width: "100%",
+          justifyContent: "space-evenly",
+          marginBottom: 100,
+        }}
+      >
+        <Text style={{ ...Font.light }}>Don't have an account?</Text>
+        <TouchableOpacity>
+          <Text style={{ ...Font.title, color: Colors.primary, fontSize: 15 }}>
+            Sign up
+          </Text>
+        </TouchableOpacity>
+      </View>
     </Container>
   );
 };
@@ -105,7 +127,8 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 20,
+    //     paddingTop: 20,
+    width: "100%",
   },
   optionButton: {
     width: Sizes.width / 2 - 30,
@@ -122,6 +145,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     width: "100%",
-    marginTop: 10,
+    marginTop: 20,
+  },
+  login: {
+    width: Sizes.width - 100,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    borderRadius: 10,
+    alignItems: "center",
+    paddingVertical: 10,
+    marginTop: 50,
   },
 });

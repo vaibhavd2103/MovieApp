@@ -34,13 +34,13 @@ export default function App() {
   return (
     <>
       <Provider>
-        <View
+        {/* <View
           style={{
             height: 35,
             width: "100%",
             backgroundColor: Colors.bg,
           }}
-        ></View>
+        ></View> */}
         <StatusBar style="light" />
         <AppNavigator />
       </Provider>

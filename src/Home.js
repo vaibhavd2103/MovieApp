@@ -19,6 +19,7 @@ import { MovieDetailPopUp, MovieTile } from "../Components/HomeComponents";
 import { Modal, Portal } from "react-native-paper";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import axios from "axios";
+import analyze from "rgbaster";
 
 const Home = (props) => {
   const [id, setId] = useState(Math.floor(Math.random() * 10));
@@ -29,6 +30,7 @@ const Home = (props) => {
   const [selectedMovie, setSelectedMovie] = useState("");
   const [posters, setPosters] = useState([]);
   const [modal, setModal] = useState(false);
+  const [averageColor, setAverageColor] = useState("#fff");
   const showModal = () => {
     setModal(true);
   };
@@ -41,12 +43,26 @@ const Home = (props) => {
     setId(Math.floor(Math.random() * 20));
     const fetchAllMovies = async () => {
       const trending = await instance.get(requests.fetchTrending);
-      setLoading(false);
+      setMovies(trending.data.results);
       //  console.log(trending);
-      //  console.log(trending.data.results[0].id);
+      //  console.log(trending.data.results[id]);
       const posterDetails1 = await instance.get(
         `/movie/${trending.data.results[id].id}?api_key=${API_KEY}`
       );
+      setLoading(false);
+      //  const result = await analyze(
+      //    {
+      //      uri: `https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQpAiy99sDlvCBcR5nA6NlgrtO7moRRflitw7Pb8Yram_CWPQBgRp-dVMHUoEN9hcXalCw&usqp=CAU`,
+      //    },
+      //    {
+      //      scale: 0.6,
+      //      // ignore: ["rgb(255,255,255)", "rgb(0,0,0)"],
+      //    }
+      //  );
+      //  const length = result.length;
+      //  console.log(trending.data.results[id].original_name, result);
+      //  setAverageColor(result[length / 2].color);
+
       setPosterDetails(posterDetails1.data);
       const posters1 = await axios.get(
         `https://imdb-api.com/en/API/Posters/k_cv8041zd/${posterDetails1.data.imdb_id}`
@@ -56,7 +72,6 @@ const Home = (props) => {
       setPosters([{ key: "left" }, ...posters2, { key: "right" }]);
       //  console.log(posterDetails1.data)
       //  setLoading(false);
-      setMovies(trending.data.results);
     };
     fetchAllMovies();
   }, []);
@@ -77,8 +92,10 @@ const Home = (props) => {
           position: "absolute",
           paddingTop: 5,
           zIndex: 20,
+          top: 40,
+          // paddingTop: 40,
         }}
-        colors={["#000f", "#fff0"]}
+        colors={[Colors.bg, "#0b0b0baa", "#fff0"]}
       >
         <View
           style={{
@@ -101,18 +118,24 @@ const Home = (props) => {
             >
               <Feather name="search" size={24} color="white" />
             </TouchableOpacity>
-            <Image
-              source={{
-                uri: "https://media.gettyimages.com/photos/bearded-businessman-against-gray-background-picture-id1179627332?s=612x612",
+            <TouchableOpacity
+              onPress={() => {
+                props.navigation.navigate("Profile");
               }}
-              style={{
-                height: 30,
-                width: 30,
-                borderRadius: 10,
-                marginLeft: 20,
-                marginRight: 15,
-              }}
-            />
+            >
+              <Image
+                source={{
+                  uri: "https://media.gettyimages.com/photos/bearded-businessman-against-gray-background-picture-id1179627332?s=612x612",
+                }}
+                style={{
+                  height: 30,
+                  width: 30,
+                  borderRadius: 10,
+                  marginLeft: 20,
+                  marginRight: 15,
+                }}
+              />
+            </TouchableOpacity>
           </View>
         </View>
       </LinearGradient>
@@ -120,7 +143,7 @@ const Home = (props) => {
         <View
           style={{
             width: "100%",
-            height: Sizes.width * 1.2,
+            height: Sizes.width * 1.5,
             //   backgroundColor: "grey",
           }}
         >
@@ -206,7 +229,7 @@ const Home = (props) => {
           />
           <LinearGradient
             style={{
-              height: (Sizes.width * 1.2) / 3,
+              height: (Sizes.width * 1.2) / 4,
               width: "100%",
               position: "absolute",
               bottom: 0,
@@ -248,7 +271,7 @@ const Home = (props) => {
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  backgroundColor: "white",
+                  backgroundColor: averageColor,
                   borderRadius: 10,
                   paddingHorizontal: 15,
                   paddingVertical: 5,
@@ -284,7 +307,7 @@ const Home = (props) => {
                 <Text style={{ ...Font.light, marginLeft: 5, opacity: 0.7 }}>
                   {posterDetails && posterDetails.vote_average
                     ? posterDetails.vote_average
-                    : "Unknown"}
+                    : "5"}
                 </Text>
               </View>
             </View>
@@ -323,7 +346,18 @@ const Home = (props) => {
 
   return (
     <>
-      <Container bg={true}>
+      <Container>
+        <View
+          style={{
+            height: 40,
+            width: "100%",
+            position: "absolute",
+            paddingTop: 5,
+            zIndex: 20,
+            backgroundColor: Colors.bg,
+          }}
+          // colors={[Colors.bg, "#0b0b0bbb", "#fff0"]}
+        ></View>
         <FlatList
           data={movies}
           numColumns={3}
@@ -341,12 +375,13 @@ const Home = (props) => {
                 selectedMovie={selectedMovie}
                 setSelectedMovie={setSelectedMovie}
                 showModal={showModal}
+                navigation={props.navigation}
               />
             );
           }}
         />
       </Container>
-      <Portal>
+      {/* <Portal>
         <Modal
           visible={modal}
           onDismiss={hideModal}
@@ -360,7 +395,7 @@ const Home = (props) => {
         >
           <MovieDetailPopUp id={selectedMovie} />
         </Modal>
-      </Portal>
+      </Portal> */}
     </>
   );
 };

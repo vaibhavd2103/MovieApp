@@ -31,6 +31,7 @@ const Home = (props) => {
   const [posters, setPosters] = useState([]);
   const [modal, setModal] = useState(false);
   const [averageColor, setAverageColor] = useState("#fff");
+  const [icon, setIcon] = useState({});
   const showModal = () => {
     setModal(true);
   };
@@ -49,6 +50,10 @@ const Home = (props) => {
       const posterDetails1 = await instance.get(
         `/movie/${trending.data.results[id].id}?api_key=${API_KEY}`
       );
+      const images = await instance.get(
+        `/movie/${trending.data.results[id].id}/images?api_key=${API_KEY}`
+      );
+      //  console.log(images.data);
       setLoading(false);
       //  const result = await analyze(
       //    {
@@ -69,6 +74,7 @@ const Home = (props) => {
       );
       //  console.log(posters1.data);
       const posters2 = posters1.data.posters;
+      setIcon(images.data.logos[0]);
       setPosters([{ key: "left" }, ...posters2, { key: "right" }]);
       //  console.log(posterDetails1.data)
       //  setLoading(false);
@@ -229,7 +235,7 @@ const Home = (props) => {
           />
           <LinearGradient
             style={{
-              height: (Sizes.width * 1.2) / 4,
+              height: (Sizes.width * 6) / 14,
               width: "100%",
               position: "absolute",
               bottom: 0,
@@ -239,19 +245,31 @@ const Home = (props) => {
             }}
             colors={["#fff0", "#0b0b0b99", "#0b0b0bdd", Colors.bg]}
           >
-            <Text
-              style={{
-                ...Font.title,
-                fontFamily: "Staat",
-                fontSize: 40,
-                elevation: 10,
-                textShadowColor: "black",
-                position: "absolute",
-                bottom: 0,
-              }}
-            >
-              {posterDetails.original_title}
-            </Text>
+            {icon && icon.file_path ? (
+              <Image
+                source={{ uri: `${imageUrl}${icon.file_path}` }}
+                style={{
+                  width: Sizes.width - 50,
+                  //     height: (Sizes.width - 50) / icon.aspect_ratio,
+                  height: (Sizes.width * 4) / 14,
+                }}
+                resizeMode="contain"
+              />
+            ) : (
+              <Text
+                style={{
+                  ...Font.title,
+                  fontFamily: "Staat",
+                  fontSize: 30,
+                  elevation: 10,
+                  textShadowColor: "black",
+                }}
+              >
+                {posterDetails && posterDetails.original_title
+                  ? posterDetails.original_title
+                  : "Unknown"}
+              </Text>
+            )}
             <View
               style={{
                 flexDirection: "row",

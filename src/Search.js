@@ -23,13 +23,14 @@ import axios from "axios";
 
 const imageUrl = "https://image.tmdb.org/t/p/original/";
 
-const Search = () => {
+const Search = (props) => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchedMovie, setSearchedMovie] = useState([]);
 
   useEffect(() => {
     const fetchAllMovies = async () => {
-      const trending = await instance.get(requests.fetchTrending);
+      const trending = await instance.get(requests.fetchAllMovies);
       //  console.log(trending.data);
       //  console.log(trending.data.results[0].id);
       setMovies(trending.data.results);
@@ -38,12 +39,19 @@ const Search = () => {
     fetchAllMovies();
   }, []);
 
+  const handleSearch = async (text) => {
+    const result = await instance.get(
+      `/search/movie/?api_key=${API_KEY}&query=${text}`
+    );
+    //     console.log(result.data.results);
+    setSearchedMovie(result.data.results);
+  };
+
   return (
     <Container>
       <Text style={{ ...Font.title, marginBottom: 20, marginTop: 40 }}>
         Search Movie
       </Text>
-
       <View
         style={{
           flexDirection: "row",
@@ -68,6 +76,7 @@ const Search = () => {
             fontFamily: "QuickSemiBold",
             width: Sizes.width - 90,
           }}
+          onChangeText={(text) => handleSearch(text)}
         />
       </View>
       {loading ? (
@@ -76,7 +85,7 @@ const Search = () => {
         </View>
       ) : (
         <FlatList
-          data={movies}
+          data={searchedMovie.length === 0 ? movies : searchedMovie}
           style={{ width: Sizes.width, marginTop: 20 }}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
@@ -88,6 +97,9 @@ const Search = () => {
                   width: "100%",
                   marginBottom: 10,
                   backgroundColor: "#151515",
+                }}
+                onPress={() => {
+                  props.navigation.navigate("MovieDetails", item.id);
                 }}
               >
                 <Image
@@ -104,6 +116,7 @@ const Search = () => {
                   >
                     {item.original_title ? item.original_title : "Unknown"}
                   </Text>
+
                   <View
                     style={{
                       flexDirection: "row",
@@ -121,6 +134,20 @@ const Search = () => {
                     </Text>
                   </View>
                 </View>
+                <Text
+                  style={{
+                    ...Font.light,
+                    opacity: 0.7,
+                    width: 40,
+                    position: "absolute",
+                    bottom: 10,
+                    right: 5,
+                  }}
+                >
+                  {item && item.release_date
+                    ? item.release_date.slice(0, 4)
+                    : "Unknown"}
+                </Text>
               </TouchableOpacity>
             );
           }}

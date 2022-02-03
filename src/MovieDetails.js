@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Animated,
   ScrollView,
+  Linking,
 } from "react-native";
 import { Container } from "../Components/GlobalComponents";
 import instance from "../axios";
@@ -29,11 +30,17 @@ const MovieDetails = (props) => {
   const [cast, setCast] = useState([]);
   const [trailerURL, setTrailerURL] = useState("");
   const [similarMovies, setSimilarMovies] = useState([]);
+  const [images, setImages] = useState([]);
+  const [icon, setIcon] = useState({});
   // const id = id
   useEffect(() => {
     const fetchData = async () => {
       const movieData = await instance.get(`/movie/${id}?api_key=${API_KEY}`);
+      const images = await instance.get(
+        `/movie/${id}/images?api_key=${API_KEY}`
+      );
       //  console.log(movieData.data);
+      //  console.log(images.data);
       //  setLoading(false);
       const castData = await axios.get(
         `https://imdb-api.com/API/FullCast/k_cv8041zd/${movieData.data.imdb_id}`
@@ -46,8 +53,11 @@ const MovieDetails = (props) => {
         `/movie/${id}/similar?api_key=${API_KEY}`
       );
       //  console.log(similar.data.results);
-      setLoading(false);
+      //  setLoading(false);
+      setIcon(images.data.logos[0]);
       setData(movieData.data);
+      setLoading(false);
+      setImages(images.data.posters);
       setCast(castData.data.actors);
       setTrailerURL(trailerData.data.linkEmbed);
       setSimilarMovies(similar.data.results);
@@ -95,11 +105,81 @@ const MovieDetails = (props) => {
             </Text>
           ) : (
             <>
-              <ImageBackground
-                source={{ uri: `${imageUrl}${data.backdrop_path}` }}
+              <View
+                style={{
+                  height: (Sizes.width * 13.5) / 9,
+                  width: Sizes.width,
+                }}
+              >
+                <FlatList
+                  data={images}
+                  pagingEnabled
+                  horizontal={true}
+                  keyExtractor={(item) => item.file_path}
+                  renderItem={({ item }) => {
+                    return (
+                      <View
+                        style={{
+                          height: (Sizes.width * 13.5) / 9,
+                          width: Sizes.width,
+                          backgroundColor: Colors.lightBg,
+                        }}
+                      >
+                        <Image
+                          source={{ uri: `${imageUrl}${item.file_path}` }}
+                          style={{
+                            width: "100%",
+                            height: (Sizes.width * 13.5) / 9,
+                          }}
+                        />
+                      </View>
+                    );
+                  }}
+                />
+                <LinearGradient
+                  style={{
+                    height: (Sizes.width * 1.7) / 3,
+                    width: "100%",
+                    position: "absolute",
+                    bottom: 0,
+                    justifyContent: "flex-end",
+                    padding: 20,
+                    alignItems: "center",
+                  }}
+                  colors={["#fff0", "#0f0f0fdd", Colors.bg]}
+                >
+                  {icon && icon.file_path ? (
+                    <Image
+                      source={{ uri: `${imageUrl}${icon.file_path}` }}
+                      style={{
+                        width: Sizes.width - 50,
+                        //     height: (Sizes.width - 50) / icon.aspect_ratio,
+                        height: (Sizes.width * 4) / 14,
+                      }}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <Text
+                      style={{
+                        ...Font.title,
+                        fontFamily: "Staat",
+                        fontSize: 30,
+                        elevation: 10,
+                        textShadowColor: "black",
+                      }}
+                    >
+                      {data && data.original_title
+                        ? data.original_title
+                        : "Unknown"}
+                    </Text>
+                  )}
+                </LinearGradient>
+              </View>
+              {/* <ImageBackground
+                source={{ uri: `${imageUrl}${data.poster_path}` }}
                 style={{
                   width: "100%",
-                  height: (Sizes.width - 20) / 1.8,
+                  height: (Sizes.width * 16) / 9,
                 }}
               >
                 <LinearGradient
@@ -111,7 +191,7 @@ const MovieDetails = (props) => {
                     justifyContent: "flex-end",
                     padding: 20,
                   }}
-                  colors={["#fff0", "#0f0f0f99", Colors.lightBg]}
+                  colors={["#fff0", "#0f0f0f99", Colors.bg]}
                 >
                   <Text
                     style={{
@@ -127,7 +207,7 @@ const MovieDetails = (props) => {
                       : "Unknown"}
                   </Text>
                 </LinearGradient>
-              </ImageBackground>
+              </ImageBackground> */}
               <View
                 style={{
                   flexDirection: "row",
@@ -183,17 +263,38 @@ const MovieDetails = (props) => {
                   {data.overview}
                 </Text>
               </View>
-              <Text
-                style={{
-                  ...Font.title,
-                  marginTop: 15,
-                  textAlign: "left",
-                  fontSize: 15,
-                  paddingLeft: 10,
+              <TouchableOpacity
+                onPress={() => {
+                  Linking.openURL(trailerURL);
                 }}
+                style={{ flexDirection: "row", marginTop: 15 }}
               >
-                Watch trailer {">"} {trailerURL}
-              </Text>
+                <Text
+                  style={{
+                    ...Font.title,
+
+                    textAlign: "left",
+                    fontSize: 15,
+                    paddingLeft: 10,
+                    maxWidth: Sizes.width - 30,
+                  }}
+                >
+                  Watch trailer {">"}{" "}
+                </Text>
+                <Text
+                  style={{
+                    opacity: 0.5,
+                    ...Font.normal,
+                    textAlign: "left",
+                    fontSize: 15,
+                    maxWidth: Sizes.width - 100,
+                  }}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {trailerURL}
+                </Text>
+              </TouchableOpacity>
               <Text
                 style={{
                   ...Font.title,

@@ -10,20 +10,21 @@ import {
   Animated,
   ScrollView,
   Linking,
+  ToastAndroid,
 } from "react-native";
 import { Container } from "../Components/GlobalComponents";
 import instance from "../axios";
 import { API_KEY, requests } from "../requests";
 import { Colors, Font, Sizes } from "../Constants/Constants";
 import { LinearGradient } from "expo-linear-gradient";
-import { AntDesign, Entypo } from "@expo/vector-icons";
+import { AntDesign, Entypo, Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 
 const imageUrl = "https://image.tmdb.org/t/p/original/";
 
 const MovieDetails = (props) => {
   const id = props.route.params;
-
+  const [movieId, setMovieId] = useState(id);
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
   const [IMDBid, setIMDBid] = useState("");
@@ -32,25 +33,32 @@ const MovieDetails = (props) => {
   const [similarMovies, setSimilarMovies] = useState([]);
   const [images, setImages] = useState([]);
   const [icon, setIcon] = useState({});
+  const [selectedActor, setSelectedActor] = useState("");
   // const id = id
   useEffect(() => {
     const fetchData = async () => {
-      const movieData = await instance.get(`/movie/${id}?api_key=${API_KEY}`);
+      const movieData = await instance.get(
+        `/movie/${movieId}?api_key=${API_KEY}`
+      );
       const images = await instance.get(
-        `/movie/${id}/images?api_key=${API_KEY}`
+        `/movie/${movieId}/images?api_key=${API_KEY}`
       );
       //  console.log(movieData.data);
       //  console.log(images.data);
       //  setLoading(false);
-      const castData = await axios.get(
-        `https://imdb-api.com/API/FullCast/k_cv8041zd/${movieData.data.imdb_id}`
+      const castData = await instance.get(
+        `/movie/${movieId}/credits?api_key=${API_KEY}`
       );
+      //  console.log(castData.data);
+      //  await axios.get(
+      //    `https://imdb-api.com/API/FullCast/k_cv8041zd/${movieData.data.imdb_id}`
+      //  );
       //  console.log(castData.data);
       const trailerData = await axios.get(
         `https://imdb-api.com/en/API/Trailer/k_cv8041zd/${movieData.data.imdb_id}`
       );
       const similar = await instance.get(
-        `/movie/${id}/similar?api_key=${API_KEY}`
+        `/movie/${movieId}/similar?api_key=${API_KEY}`
       );
       //  console.log(similar.data.results);
       //  setLoading(false);
@@ -58,15 +66,42 @@ const MovieDetails = (props) => {
       setData(movieData.data);
       setLoading(false);
       setImages(images.data.posters);
-      setCast(castData.data.actors);
+      //  setCast(castData.data.actors);
+      setCast(castData.data.cast);
       setTrailerURL(trailerData.data.linkEmbed);
       setSimilarMovies(similar.data.results);
     };
     fetchData();
-  }, []);
+  }, [movieId]);
 
   //   k_cv8041zd
   // k_n6knabti
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const viewableItemsChanged = useRef(({ viewableItems }) => {
+    setCurrentIndex(viewableItems[0].index);
+  }).current;
+
+  const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
+
+  const ImagesRef = useRef(null);
+
+  const scrollToForward = () => {
+    if (currentIndex < images.length - 1) {
+      ImagesRef.current.scrollToIndex({ index: currentIndex + 1 });
+    } else {
+      console.log("Last Item");
+    }
+  };
+
+  const scrollToBackward = () => {
+    if (currentIndex > 0) {
+      ImagesRef.current.scrollToIndex({ index: currentIndex - 1 });
+    } else {
+      console.log("First Item");
+    }
+  };
 
   return (
     <>
@@ -111,8 +146,63 @@ const MovieDetails = (props) => {
                   width: Sizes.width,
                 }}
               >
+                <TouchableOpacity
+                  style={{
+                    position: "absolute",
+                    backgroundColor: "rgba(0,0,0,0.4)",
+                    left: 15,
+                    top: 40,
+                    zIndex: 10,
+                    borderRadius: 10,
+                    paddingHorizontal: 20,
+                    paddingVertical: 10,
+                  }}
+                  onPress={() => {
+                    props.navigation.goBack();
+                  }}
+                >
+                  <Ionicons name="arrow-back" size={24} color="white" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{
+                    position: "absolute",
+                    backgroundColor: "rgba(0,0,0,0.4)",
+                    right: 15,
+                    top: (Sizes.width * 1.3) / 2,
+                    zIndex: 10,
+                    borderRadius: 10,
+                    paddingHorizontal: 10,
+                    paddingVertical: 20,
+                  }}
+                  onPress={() => {
+                    scrollToForward();
+                  }}
+                >
+                  <Ionicons name="chevron-forward" size={24} color="white" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{
+                    position: "absolute",
+                    backgroundColor: "rgba(0,0,0,0.4)",
+                    left: 15,
+                    top: (Sizes.width * 1.3) / 2,
+                    zIndex: 10,
+                    borderRadius: 10,
+                    paddingHorizontal: 10,
+                    paddingVertical: 20,
+                  }}
+                  onPress={() => {
+                    scrollToBackward();
+                  }}
+                >
+                  <Ionicons name="chevron-back" size={24} color="white" />
+                </TouchableOpacity>
                 <FlatList
                   data={images}
+                  onViewableItemsChanged={viewableItemsChanged}
+                  snapToAlignment="center"
+                  viewabilityConfig={viewConfig}
+                  ref={ImagesRef}
                   pagingEnabled
                   horizontal={true}
                   keyExtractor={(item) => item.file_path}
@@ -265,7 +355,9 @@ const MovieDetails = (props) => {
               </View>
               <TouchableOpacity
                 onPress={() => {
-                  Linking.openURL(trailerURL);
+                  trailerURL === ""
+                    ? ToastAndroid.CENTER("Trailer not available at the moment")
+                    : Linking.openURL(trailerURL);
                 }}
                 style={{ flexDirection: "row", marginTop: 15 }}
               >
@@ -292,7 +384,9 @@ const MovieDetails = (props) => {
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {trailerURL}
+                  {trailerURL === ""
+                    ? "Not available at the moment"
+                    : trailerURL}
                 </Text>
               </TouchableOpacity>
               <Text
@@ -318,6 +412,7 @@ const MovieDetails = (props) => {
                     height: (Sizes.width - 20) / 1.8,
                     justifyContent: "center",
                     marginTop: 5,
+                    alignItems: "center",
                   }}
                 >
                   <Text
@@ -357,13 +452,18 @@ const MovieDetails = (props) => {
                 {similarMovies ? (
                   similarMovies.map((item, i) => {
                     return (
-                      <View
+                      <TouchableOpacity
                         style={{
                           margin: 5,
                           height: (Sizes.width / 2.5 - 40) * 1.5,
                           width: Sizes.width / 2.5 - 40,
                           borderRadius: 5,
                           backgroundColor: Colors.lightBg,
+                        }}
+                        onPress={() => {
+                          //  props.navigation.navigate("MovieDetails", item.id);
+                          setLoading(true);
+                          setMovieId(item.id);
                         }}
                         key={i}
                       >
@@ -378,7 +478,8 @@ const MovieDetails = (props) => {
                           }}
                           resizeMode="cover"
                         />
-                      </View>
+                        {/* <Text style={{ color: "white" }}>{item.title}</Text> */}
+                      </TouchableOpacity>
                     );
                   })
                 ) : (
@@ -409,39 +510,88 @@ const MovieDetails = (props) => {
                 {cast ? (
                   cast.map((item, i) => {
                     return (
-                      <View style={{ margin: 5 }} key={i}>
-                        <Image
+                      <TouchableOpacity
+                        style={{
+                          margin: 5,
+                          backgroundColor:
+                            selectedActor === item.id
+                              ? Colors.lightBg
+                              : Colors.lightBg,
+                          borderRadius: 10,
+                          paddingBottom: 5,
+                        }}
+                        key={i}
+                        onPress={() => {
+                          setSelectedActor(item.id);
+                        }}
+                      >
+                        <ImageBackground
                           source={{
-                            uri: item.image,
+                            //    uri: item.image,
+                            uri: `${imageUrl}${item.profile_path}`,
                           }}
                           style={{
                             height: (Sizes.width / 3 - 40) * 1.5,
                             width: Sizes.width / 3 - 40,
-                            borderRadius: 10,
                           }}
+                          borderRadius={10}
                           resizeMode="cover"
-                        />
+                        >
+                          {selectedActor === item.id ? (
+                            <TouchableOpacity
+                              style={{
+                                height: "100%",
+                                width: "100%",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                backgroundColor: "rgba(0,0,0,0.5)",
+                              }}
+                              onPress={() => {
+                                props.navigation.navigate(
+                                  "ActorDetails",
+                                  item.id
+                                );
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  ...Font.normal,
+                                  fontSize: 13,
+                                  textAlign: "center",
+                                }}
+                              >
+                                View{"\n"}Details
+                              </Text>
+                            </TouchableOpacity>
+                          ) : null}
+                        </ImageBackground>
                         <Text
                           style={{
                             ...Font.light,
                             maxWidth: Sizes.width / 3 - 40,
                             textAlign: "center",
                           }}
-                          numberOfLines={2}
+                          numberOfLines={selectedActor === item.id ? 0 : 2}
                           ellipsizeMode="tail"
                         >
-                          {item.name}
+                          {/* {item.name} */}
+                          {item.original_name}
                           {"\n"}
                           <Text
                             style={{
-                              color: Colors.primary,
-                              fontFamily: "QuickBold",
+                              ...Font.header,
+                              fontSize: 14,
+                              color:
+                                selectedActor === item.id
+                                  ? Colors.yellow
+                                  : Colors.primary,
                             }}
                           >
-                            {item.asCharacter}
+                            {/* {item.asCharacter} */}
+                            {item.character}
                           </Text>
                         </Text>
-                      </View>
+                      </TouchableOpacity>
                     );
                   })
                 ) : (
